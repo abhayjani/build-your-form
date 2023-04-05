@@ -309,17 +309,18 @@ form {
   color: red;
   margin-left: 0.25rem;
 }
-
-/* Progress */
 .progress {
+  width: 100%;
+  background-color: #e8e8e8;
   height: 10px;
-  background-color: #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  margin: 20px 0;
 }
 
 .progress-bar {
-  height: 10px;
-  border-radius: 4px;
-  background-color: #4caf50;
-  width: 
+  background-color: #007bff;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease-in-out;
+}
+
+
