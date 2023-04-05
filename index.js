@@ -22,7 +22,7 @@ connection.connect(error => {
   console.log('Successfully connected to the database.');
 });
 
-// New code for PostGreSQL
+// New code for PostGreSQL via GPT
 const { Pool } = require('pg');
 
 const pool = new Pool({
