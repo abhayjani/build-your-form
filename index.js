@@ -1,9 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Parse application/json
 app.use(bodyParser.json());
@@ -37,7 +40,10 @@ app.get('/api/forms', (req, res) => {
 });
 
 // Get form by ID
-app.get('/api/forms/:id', (req, res) => {
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
   const { id } = req.params;
   const sql = `SELECT * FROM forms WHERE id = ${id}`;
 
