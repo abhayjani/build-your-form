@@ -1,0 +1,25 @@
+{
+  "name": "build-your-form",
+  "version": "1.0.0",
+  "description": "A web application to create custom forms",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "form",
+    "create",
+    "custom",
+    "web application"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql2": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.13"
+  }
+}
