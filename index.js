@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use('/', express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize Firebase Admin SDK
 const serviceAccount = require('./serviceAccountKey.json');
@@ -71,7 +71,12 @@ app.delete('/api/forms/:id', async (req, res) => {
 
 // Serve the home page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('An error occurred while serving the home page');
+    }
+  });
 });
 
 // Start the server
