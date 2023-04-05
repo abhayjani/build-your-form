@@ -40,10 +40,7 @@ app.get('/api/forms', (req, res) => {
 });
 
 // Get form by ID
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
+app.get('/api/forms/:id', (req, res) => {
   const { id } = req.params;
   const sql = `SELECT * FROM forms WHERE id = ${id}`;
 
