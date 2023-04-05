@@ -22,6 +22,27 @@ connection.connect(error => {
   console.log('Successfully connected to the database.');
 });
 
+// New code for PostGreSQL
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: 'bgrjemso',
+  host: 'ruby.db.elephantsql.com',
+  database: 'bgrjemso',
+  password: 'fBpq8iYZaAUqz9Q-w-ScrOmSCmbqc8bD',
+  port: 5432,
+});
+
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Error executing query', err.stack);
+  } else {
+    console.log('Query result', res.rows);
+  }
+  pool.end();
+});
+
+
 // Get all forms
 app.get('/api/forms', (req, res) => {
   const sql = 'SELECT * FROM forms';
