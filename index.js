@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg');
+const admin = require('firebase-admin');
 const path = require('path');
 
 const app = express();
@@ -8,86 +8,70 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Initialize Firebase Admin SDK
+const serviceAccount = require('./serviceAccountKey.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://build-your-form.firebaseio.com'
+});
+
+// Initialize Firestore database
+const db = admin.firestore();
+
 // Parse application/json
 app.use(bodyParser.json());
 
-// New code for PostgreSQL via ElephantSQL
-const pool = new Pool({
-  user: 'bgrjemso',
-  host: 'ruby.db.elephantsql.com',
-  database: 'bgrjemso',
-  password: 'fBpq8iYZaAUqz9Q-w-ScrOmSCmbqc8bD',
-  port: 5432,
-});
-
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Error executing query', err.stack);
-  } else {
-    console.log('Query result', res.rows);
-  }
-  pool.end();
-});
-
 // Get all forms
-app.get('/api/forms', (req, res) => {
-  const sql = 'SELECT * FROM forms';
-
-  pool.query(sql, (error, results) => {
-    if (error) throw error;
-    res.json(results.rows);
+app.get('/api/forms', async (req, res) => {
+  const forms = [];
+  const querySnapshot = await db.collection('forms').get();
+  querySnapshot.forEach((doc) => {
+    forms.push({ id: doc.id, ...doc.data() });
   });
+  res.json(forms);
 });
 
 // Get form by ID
-app.get('/api/forms/:id', (req, res) => {
+app.get('/api/forms/:id', async (req, res) => {
   const { id } = req.params;
-  const sql = `SELECT * FROM forms WHERE id = ${id}`;
-
-  pool.query(sql, (error, result) => {
-    if (error) throw error;
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: `Form with id ${id} not found.` });
-    } else {
-      res.json(result.rows[0]);
-    }
-  });
+  const formRef = db.collection('forms').doc(id);
+  const formDoc = await formRef.get();
+  if (!formDoc.exists) {
+    res.status(404).json({ message: `Form with id ${id} not found.` });
+  } else {
+    res.json({ id: formDoc.id, ...formDoc.data() });
+  }
 });
 
 // Create a new form
-app.post('/api/forms', (req, res) => {
+app.post('/api/forms', async (req, res) => {
   const { title, description, fields } = req.body;
-  const sql = `INSERT INTO forms (title, description, fields) VALUES ('${title}', '${description}', '${JSON.stringify(fields)}')`;
-
-  pool.query(sql, (error, result) => {
-    if (error) throw error;
-    const newForm = { id: result.rows[0].id, title, description, fields };
-    res.status(201).json(newForm);
-  });
+  const formRef = await db.collection('forms').add({ title, description, fields });
+  const newForm = { id: formRef.id, title, description, fields };
+  res.status(201).json(newForm);
 });
 
 // Update an existing form
-app.put('/api/forms/:id', (req, res) => {
+app.put('/api/forms/:id', async (req, res) => {
   const { id } = req.params;
   const { title, description, fields } = req.body;
-  const sql = `UPDATE forms SET title = '${title}', description = '${description}', fields = '${JSON.stringify(fields)}' WHERE id = ${id}`;
-
-  pool.query(sql, (error, result) => {
-    if (error) throw error;
-    const updatedForm = { id, title, description, fields };
-    res.json(updatedForm);
-  });
+  const formRef = db.collection('forms').doc(id);
+  await formRef.update({ title, description, fields });
+  const updatedForm = { id, title, description, fields };
+  res.json(updatedForm);
 });
 
 // Delete a form
-app.delete('/api/forms/:id', (req, res) => {
+app.delete('/api/forms/:id', async (req, res) => {
   const { id } = req.params;
-  const sql = `DELETE FROM forms WHERE id = ${id}`;
+  const formRef = db.collection('forms').doc(id);
+  await formRef.delete();
+  res.json({ message: `Form with id ${id} has been deleted.` });
+});
 
-  pool.query(sql, (error, result) => {
-    if (error) throw error;
-    res.json({ message: `Form with id ${id} has been deleted.` });
-  });
+// Serve the home page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start the server
